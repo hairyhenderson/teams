@@ -1,2 +1,3 @@
-# ghrepocli
-CLI application to manage github issues and pull requests for multiple repos
+# teams 
+
+CLI application to manage GitHub issues and pull requests for a team's repositories.
