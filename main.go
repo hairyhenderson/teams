@@ -7,12 +7,13 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/hairyhenderson/teams/version"
 	"github.com/jawher/mow.cli"
 )
 
 func main() {
 	app := cli.App("teams", "Manage GitHub issues and pull requests for a team's repositories")
-	app.Version("v version", "v0.1.0")
+	app.Version("v version", version.Version)
 
 	teamOpt := app.StringOpt("t team", "", "Team name to manage (in org/teamname format)")
 
