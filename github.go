@@ -25,6 +25,9 @@ type Repo struct {
 // Filter -
 type Filter struct {
 	Milestone string
+	User      string
+	State     string
+	New       bool
 }
 
 func (r Repo) String() string {
@@ -95,7 +98,7 @@ func (g *GitHubClient) GetRepos(org string, teamName string) (repoList []Repo, e
 // GetPRs -
 func (g *GitHubClient) GetPRs(repo Repo, filter Filter) (pulls []*github.PullRequest, err error) {
 	pulls, _, err = g.client.PullRequests.List(repo.Org, repo.Name, &github.PullRequestListOptions{
-		State:       "open",
+		State:       filter.State,
 		ListOptions: github.ListOptions{PerPage: 200},
 	})
 	var filtered []*github.PullRequest
@@ -108,13 +111,34 @@ func (g *GitHubClient) GetPRs(repo Repo, filter Filter) (pulls []*github.PullReq
 	} else {
 		filtered = pulls
 	}
+
+	if filter.User != "" {
+		f := filtered
+		filtered = []*github.PullRequest{}
+		for _, pull := range f {
+			if pull.User != nil && *(pull.User.Login) == filter.User {
+				filtered = append(filtered, pull)
+			}
+		}
+	}
+
+	if filter.New {
+		f := filtered
+		filtered = []*github.PullRequest{}
+		for _, pull := range f {
+			if time.Since(*(pull.CreatedAt)) <= 24*time.Hour {
+				filtered = append(filtered, pull)
+			}
+		}
+	}
+
 	return filtered, err
 }
 
 // GetIssues -
 func (g *GitHubClient) GetIssues(repo Repo, filter Filter) (issues []*github.Issue, err error) {
 	issues, _, err = g.client.Issues.ListByRepo(repo.Org, repo.Name, &github.IssueListByRepoOptions{
-		State:       "open",
+		State:       filter.State,
 		ListOptions: github.ListOptions{PerPage: 200},
 	})
 	var filtered []*github.Issue
@@ -127,6 +151,27 @@ func (g *GitHubClient) GetIssues(repo Repo, filter Filter) (issues []*github.Iss
 	} else {
 		filtered = issues
 	}
+
+	if filter.User != "" {
+		f := filtered
+		filtered = []*github.Issue{}
+		for _, issue := range f {
+			if issue.User != nil && *(issue.User.Login) == filter.User {
+				filtered = append(filtered, issue)
+			}
+		}
+	}
+
+	if filter.New {
+		f := filtered
+		filtered = []*github.Issue{}
+		for _, issue := range f {
+			if time.Since(*(issue.CreatedAt)) <= 24*time.Hour {
+				filtered = append(filtered, issue)
+			}
+		}
+	}
+
 	return filtered, err
 }
 

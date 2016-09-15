@@ -30,13 +30,23 @@ func main() {
 	}
 
 	app.Command("pulls", "Displays open PRs for the given repo(s)", func(cmd *cli.Cmd) {
+		stateArg := cmd.StringOpt("state", "open", "Display PRs based on their state")
 		milestoneArg := cmd.StringOpt("m milestone", "", "Milestone to filter on")
+		userArg := cmd.StringOpt("u user", "", "Display only PRs from <user>")
+		newArg := cmd.BoolOpt("new", false, "Display PRs opened within the past 24 hours")
+
 		cmd.Action = func() {
 			w := tabwriter.NewWriter(os.Stdout, 4, 2, 2, ' ', 0)
 			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", nc("PULL REQUEST"), nc("LAST UPDATED"), nc("CONTRIBUTOR"), nc("MILESTONE"), nc("TITLE"))
-			filter := Filter{}
+			filter := Filter{
+				State: *(stateArg),
+				New:   *(newArg),
+			}
 			if milestoneArg != nil {
 				filter.Milestone = *(milestoneArg)
+			}
+			if userArg != nil {
+				filter.User = *(userArg)
 			}
 			for _, repo := range repoList {
 				pulls, _ := g.GetPRs(repo, filter)
@@ -47,13 +57,22 @@ func main() {
 	})
 
 	app.Command("issues", "Displays open Issues for the given repo(s)", func(cmd *cli.Cmd) {
+		stateArg := cmd.StringOpt("state", "open", "Display Issues based on their state")
 		milestoneArg := cmd.StringOpt("m milestone", "", "Milestone to filter on")
+		userArg := cmd.StringOpt("u user", "", "Display only Issues from <user>")
+		newArg := cmd.BoolOpt("new", false, "Display Issues opened within the past 24 hours")
 		cmd.Action = func() {
 			w := tabwriter.NewWriter(os.Stdout, 4, 2, 2, ' ', 0)
 			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", nc("ISSUE"), nc("LAST UPDATED"), nc("CONTRIBUTOR"), nc("MILESTONE"), nc("TITLE"))
-			filter := Filter{}
+			filter := Filter{
+				State: *(stateArg),
+				New:   *(newArg),
+			}
 			if milestoneArg != nil {
 				filter.Milestone = *(milestoneArg)
+			}
+			if userArg != nil {
+				filter.User = *(userArg)
 			}
 			for _, repo := range repoList {
 				issues, _ := g.GetIssues(repo, filter)
