@@ -82,6 +82,15 @@ func main() {
 		}
 	})
 
+	app.Command("list", "Lists all repos owned by the given team", func(cmd *cli.Cmd) {
+		cmd.Action = func() {
+			w := tabwriter.NewWriter(os.Stdout, 4, 2, 2, ' ', 0)
+			fmt.Fprintf(w, "%s\t%s\n", nc("REPO"), nc("DESCRIPTION"))
+			g.DisplayRepos(w, repoList)
+			w.Flush()
+		}
+	})
+
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatalf(err.Error())
