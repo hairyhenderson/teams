@@ -18,8 +18,10 @@ type GitHubClient struct {
 
 // Repo -
 type Repo struct {
-	Org  string
-	Name string
+	Org         string
+	Name        string
+	Description string
+	URL         string
 }
 
 // Filter -
@@ -89,7 +91,21 @@ func (g *GitHubClient) GetRepos(org string, teamName string) (repoList []Repo, e
 
 	for _, repo := range repos {
 		if *(repo.Owner.Login) == org {
-			repoList = append(repoList, Repo{*(repo.Owner.Login), *(repo.Name)})
+			var u string
+			if repo.URL == nil {
+				u = ""
+			} else {
+				u = *(repo.URL)
+			}
+
+			var d string
+			if repo.Description == nil {
+				d = ""
+			} else {
+				d = *(repo.Description)
+			}
+
+			repoList = append(repoList, Repo{*(repo.Owner.Login), *(repo.Name), d, u})
 		}
 	}
 	return repoList, err
@@ -173,6 +189,15 @@ func (g *GitHubClient) GetIssues(repo Repo, filter Filter) (issues []*github.Iss
 	}
 
 	return filtered, err
+}
+
+// DisplayRepos -
+func (g *GitHubClient) DisplayRepos(w io.Writer, repoList []Repo) {
+	for _, r := range repoList {
+
+		repo := fmt.Sprintf("%s/%s", r.Org, r.Name)
+		fmt.Fprintf(w, "%s\t%s\n", nc(repo), nc(r.Description))
+	}
 }
 
 // DisplayPullRequests -
